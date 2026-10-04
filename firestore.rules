@@ -1,0 +1,56 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: projects
+    // Fields: title, description, image, technologies, github, demo, createdAt
+    //
+    // Collection: messages
+    // Fields: name, email, message, createdAt, status
+    //
+    // Collection: settings
+    // Fields: hero, about, contact, seo
+    //
+    // Collection: stats
+    // Fields: date, count
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (request.auth.token.email == "musoxonmaxmudov37@gmail.com");
+    }
+
+    // Projects: Public Read, Admin Write
+    match /projects/{projectId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Messages: Public Create, Admin Read/Update/Delete
+    match /messages/{messageId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Settings: Public Read, Admin Write
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Stats: Public Update (increment), Admin Read/Write
+    match /stats/{statId} {
+      allow read: if isAdmin();
+      allow create, update: if true; // In a real app, we'd restrict this more
+    }
+  }
+}
